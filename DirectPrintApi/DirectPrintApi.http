@@ -1,0 +1,6 @@
+@DirectPrintApi_HostAddress = http://localhost:5255
+
+GET {{DirectPrintApi_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

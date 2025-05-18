@@ -1,0 +1,13 @@
+./bin/
+./obj/
+./publish/
+appsettings.json
+./bin/Debug/
+./bin/Release/
+./bin/Debug/net6.0/
+./bin/Release/net6.0/
+./bin/Debug/net6.0/publish/
+./bin/Release/net6.0/publish/
+bin/*
+obj/*
+publish/*
