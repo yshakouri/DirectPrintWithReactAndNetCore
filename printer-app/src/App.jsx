@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import reactLogo from './assets/react.svg'
 import viteLogo from '/vite.svg'
 import './App.css'
 import html2pdf from 'html2pdf.js'
+import qz from 'qz-tray';
+import { SIGNATURE, CERT } from './qz-signature';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -11,6 +13,55 @@ function App() {
   const [printer1Name, setPrinter1Name] = useState('Printer1')
   const [printer2Name, setPrinter2Name] = useState('Printer2')
   const [pdfBase64, setPdfBase64] = useState(null);
+
+  const connectToQz2 = async () => {
+    try {
+      // تنظیم گواهی خود-امضا
+      qz.security.setCertificatePromise((resolve, reject) => {
+        fetch('/digital-certificate.txt') // مسیر فایل گواهی در پوشه public
+          .then(response => response.text())
+          .then(resolve)
+          .catch(reject);
+      });
+  
+      // تنظیم امضای دیجیتال (برای محیط توسعه ساده)
+      qz.security.setSignaturePromise((toSign) => {
+        return (resolve, reject) => {
+          // برای محیط توسعه، می‌توانید از سرور دمو QZ استفاده کنید
+          fetch(`https://demo.qz.io/sign-message?request=${toSign}`)
+            .then(response => response.text())
+            .then(resolve)
+            .catch(reject);
+        };
+      });
+  
+      // اتصال به QZ Tray
+      await qz.websocket.connect();
+      console.log('Connected to QZ Tray!');
+    } catch (err) {
+      console.error('Error connecting to QZ Tray:', err);
+    }
+  };
+
+  const connectToQz = async () => {
+    try {
+      // اتصال به QZ Tray بدون گواهی
+      await qz.websocket.connect();
+      console.log('Connected to QZ Tray!');
+    } catch (err) {
+      console.error('Error connecting to QZ Tray:', err);
+    }
+  };
+
+  useEffect(() => {
+    // setSignatureAndCertificate();
+  }, []);
+
+  const setSignatureAndCertificate = () => {
+    qz.security.setSignaturePromise(() => () => Promise.resolve(SIGNATURE.trim()));
+    qz.security.setCertificatePromise((resolve) => resolve(CERT.trim()));
+  }
+
 
   const directPrint = (printerName) => {
     const contentDiv = document.getElementById('content');
@@ -187,7 +238,16 @@ function App() {
       )}
       </div>
       </div>
-
+<button onClick={connectToQz}>Connect to QZ Tray</button>
+<button onClick={setSignatureAndCertificate}>Connect to QZ Tray Main</button>
+<button onClick={async ()=>{
+  if (!qz.websocket.isActive()) {
+    await qz.websocket.connect();
+    console.log('Connected to QZ Tray!');
+  } else {
+    console.log('QZ Tray is already connected');
+  }
+}}>Connect Then</button>
     </div>
     </>
   )
